@@ -4,7 +4,6 @@ import boto3
 import sh
 import re
 from botocore.exceptions import ClientError
-import base64 
 from .helpers.ecr_manager import ECRManager
 import json
 import uuid

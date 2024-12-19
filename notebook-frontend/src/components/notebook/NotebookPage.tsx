@@ -8,7 +8,7 @@ import { useNotebookStore } from '@/app/store';
 import { useNotebookConnection } from '@/hooks/useNotebookConnection';
 import { NotebookToolbar } from '@/components/notebook/NotebookToolbar';
 import { NotebookCell } from '@/components/notebook/NotebookCell';
-import { Jobs, OutputDeployMessage, CellType, NotebookPageProps } from '@/app/types';
+import { OutputDeployMessage, CellType, NotebookPageProps } from '@/app/types';
 import DeploymentDialog from '@/components/notebook/NotebookDeploy';
 import { SourcesTab } from '@/components/notebook/connectors/Sources';
 import { JobsPage } from '@/components/notebook/jobs/JobsPage';
@@ -113,9 +113,11 @@ export default function NotebookPage({ notebookId, userId, name, jobs }: Noteboo
     deployCode(cells, userId, name, notebookId)
   }
 
+  /*
   useEffect(() => {
     console.log(cells);
   }), [cells];
+  */
 
   return (
     <div className="flex min-h-screen">

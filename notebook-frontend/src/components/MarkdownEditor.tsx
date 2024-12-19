@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
-import { Edit, Eye } from 'lucide-react';
 import { MarkdownEditorProps } from '@/app/types';
 
 const MonacoEditor = dynamic(
@@ -14,7 +12,7 @@ const MonacoEditor = dynamic(
 
 
 export function MarkdownEditor({ code, onCodeChange, isMarkdownEditing }: MarkdownEditorProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  //const [isEditing, setIsEditing] = useState(false);
   const [isEditorReady, setIsEditorReady] = useState(false);
 
   const calculateEditorHeight = (value: string) => {
@@ -26,6 +24,7 @@ export function MarkdownEditor({ code, onCodeChange, isMarkdownEditing }: Markdo
 
   useEffect(() => {
     console.log(code);
+    console.log(isEditorReady);
   }, [code]);
 
   return (

@@ -1,7 +1,7 @@
 // app/store.ts
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { NotebookCell, User, CellType, NotebookStore, NotebookCellProps, UserStore } from './types';
+import { CellType, NotebookStore, UserStore } from './types';
 
 export const useNotebookStore = create<NotebookStore>((set) => ({
   cells: [],

@@ -36,6 +36,18 @@ class SupabaseJobDetails(BaseModel):
 class SupabaseJobList(BaseModel):
     jobs: list[SupabaseJobDetails]
 
+class SupabaseConnectorCredential(BaseModel):
+    id: Optional[str] = None
+    user_id: Optional[str] = None
+    notebook_id: Optional[str] = None
+    connector_type: Optional[str] = None
+    credentials: Optional[dict] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+class SupabaseConnectorCredentialList(BaseModel):
+    credentials: list[SupabaseConnectorCredential]
+
 class OutputPosthogSetupMessage(BaseModel):
     type: str
     success: bool

@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from helpers.lambda_generator import lambda_generator
 from helpers.supabase import job_status
+from helpers.connectors.posthog.handler import PostHogHandler
 from helpers.types import OutputExecutionMessage, OutputSaveMessage, OutputLoadMessage, OutputGenerateLambdaMessage, OutputPosthogSetupMessage
 from uuid import UUID
 from helpers.notebook import notebook
-from connectors.helpers.aws.s3.helpers import S3Helper
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -66,68 +66,36 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str, notebook_id:
                 await websocket.send_json(output.model_dump())
 
             elif data['type'] == 'posthog_setup':
+                # TODO: Switch to a case statement if it's a connector. For now, just PostHog.
                 logging.info("Setting up PostHog...")
-                logging.info("Task 1: Save the credentials to S3")
-                logging.info("Task 2: Setup PostHog in the notebook")
+
                 user_id = data.get('user_id')
                 api_key = data.get('api_key')
                 base_url = data.get('base_url')
 
-                logging.info(f"data: {data}")
+                if not user_id or not api_key or not base_url:
+                    raise ValueError("User ID, API key, or base URL is required")
 
-                aws_credentials = {
-                    "aws_access_key_id": os.environ.get('AWS_ACCESS_KEY_ID'),
-                    "aws_secret_access_key": os.environ.get('AWS_SECRET_ACCESS_KEY'),
-                    "region_name": os.environ.get('AWS_DEFAULT_REGION')
-                }
-
-                # Format the credentials in the new structure
-                posthog_credentials = {
-                    "posthog": {
-                        "credentials": {
-                            "api_key": api_key,
-                            "base_url": base_url
-                        }
-                    }
-                }
-                print(f"posthog_credentials: {posthog_credentials['posthog']['credentials']}")
-
-                logging.info("Task 1: Saving credentials to S3")
-                # Initialize S3Helper
-                s3_helper = S3Helper(credentials=aws_credentials)
-                await s3_helper.init_s3(user_id)  # This initializes the S3 client
-
-                # Now save the credentials
-                response = s3_helper.save_or_update_credentials(user_id, posthog_credentials)
-                logging.info(f"response: {response}")
-
-                if response['ResponseMetadata']['HTTPStatusCode'] != 200:
-                    raise ValueError("Failed to save credentials")
-                
-                # Handle dependencies
+              
                 # TODO: Handle dependencies better.
+                #Task 1: Install dependencies
                 posthog_dependencies = await nb.execute_code(code='!pip install pydantic requests')
                 print(f"posthog_dependencies: {posthog_dependencies}")
 
-                #Task 2: Setup PostHog in the notebook
                 # Setup PostHog in the notebook
-                posthog_setup_code = f"""
-                from connectors.services.posthog.posthog_service import PostHogService
-                from IPython import get_ipython
-                # Initialize PostHog service
-                posthog_service = PostHogService({posthog_credentials['posthog']['credentials']})
-                # Get IPython instance and inject into namespace
-                ipython = get_ipython()
-                ipython.user_ns['posthog_service'] = posthog_service
-                ipython.user_ns['posthog_client'] = posthog_service.client
-                ipython.user_ns['posthog_adapter'] = posthog_service.adapter
-                """
-                logging.info(f"Injecting PostHog setup code into the notebook: {posthog_setup_code}")
-                output = await nb.execute_code(code=posthog_setup_code)
-                logging.info(f"output: {output}")
+                posthog_setup_code = PostHogHandler(user_id, notebook_id, api_key, base_url).setup_posthog_in_notebook()
+                logging.info(f"posthog_setup_code: {posthog_setup_code}")
 
-                response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete")
-                await websocket.send_json(response.model_dump())
+                if posthog_setup_code['success']:
+                    logging.info(f"Injecting PostHog setup code into the notebook: {posthog_setup_code}")
+                    output = await nb.execute_code(code=posthog_setup_code['body'])
+                    logging.info(f"output: {output}")
+                    response = OutputPosthogSetupMessage(type='posthog_setup', success=True, message="PostHog setup complete")
+                    await websocket.send_json(response.model_dump())
+                else:
+                    logging.error(f"Failed to setup PostHog: {posthog_setup_code['message']}")
+                    response = OutputPosthogSetupMessage(type='posthog_setup', success=False, message=posthog_setup_code['message'])
+                    await websocket.send_json(response.model_dump())
                 
             elif data['type'] == 'deploy_lambda':
                 # TODO: Better dependency management here.

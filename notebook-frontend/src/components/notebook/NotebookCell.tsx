@@ -3,26 +3,26 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
-import { Loader2, ChevronUp, ChevronDown, Trash2, Upload } from 'lucide-react';
+import { Loader2, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import { NotebookCellProps } from '@/app/types';
 import { CodeEditor } from '@/components/CodeEditor';
 import { MarkdownEditor } from '@/components/MarkdownEditor';
 import { Edit, Eye } from 'lucide-react';
 import { FileUploadEditor } from "@/components/FileUpload";
 
-type CellType = 'code' | 'markdown' | 'file';
+//type CellType = 'code' | 'markdown' | 'file';
 
 // TODO: Break up notebook cell into different classes all extending from base notebookcell class.
 
 export function NotebookCell({
-  id,
+  //id,
   code,
   output,
   type,
   executionCount,
   isExecuting,
   onCodeChange,
-  onFilesChange,
+  //onFilesChange,
   onExecute,
   onDelete,
   onMoveUp,

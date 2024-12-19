@@ -11,6 +11,7 @@ export async function POST(request: NextRequest) {
       await mkdir(uploadDir, { recursive: true });
     } catch (err) {
       // Directory might already exist, that's ok
+      console.error("Error creating upload directory", err)
     }
 
     // Get the form data from the request
@@ -39,6 +40,8 @@ export async function POST(request: NextRequest) {
     const extension = originalName.split('.').pop();
     const filename = `${timestamp}-${originalName}`;
     const filepath = join(uploadDir, filename);
+
+    console.log("extension", extension)
 
     // Convert the file to buffer
     const bytes = await file.arrayBuffer();
